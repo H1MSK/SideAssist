@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
   client->setPassword("16509490");
 
   auto monitored_path = client->addOption("monitored_path");
-  auto filename = client->addParameter("flilename");
+  auto filename = client->addParameter("filename");
   auto timestamp = client->addParameter("timestamp");
 
   client->connectToHost();
