@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-package SideAssist.Core;
-
-message CoreAnnounce {
-  int64 core_id = 1;
-  int64 listen_port = 2; 
-}
