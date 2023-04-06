@@ -155,6 +155,8 @@ void Client::setPassword(const QByteArray& password) {
 }
 
 void Client::uploadChangedOptionValue() {
+  if (!mqtt_client_->isConnectedToHost())
+    return;
   const auto* opt = dynamic_cast<const NamedValue*>(sender());
   assert(opt != nullptr);
   assert(options_.find(opt->name()) != options_.end());
@@ -162,6 +164,8 @@ void Client::uploadChangedOptionValue() {
 }
 
 void Client::uploadChangedParameterValue() {
+  if (!mqtt_client_->isConnectedToHost())
+    return;
   const auto* param = dynamic_cast<const NamedValue*>(sender());
   assert(param != nullptr);
   assert(parameters_.find(param->name()) != parameters_.end());
@@ -228,6 +232,11 @@ void Client::handleMessage(const QMQTT::Message& message) {
 }
 
 void Client::uploadOptionValue(const NamedValue* option) {
+  if (!mqtt_client_->isConnectedToHost()) {
+    qWarning("Trying to upload option %s when not connected",
+             qPrintable(option->name()));
+    return;
+  }
   if (option->value().isUndefined()) {
     qCritical("Ignore uploading undefined option %s",
               qPrintable(option->name()));
@@ -244,6 +253,11 @@ void Client::uploadOptionValue(const NamedValue* option) {
 }
 
 void Client::uploadParameterValue(const NamedValue* parameter) {
+  if (!mqtt_client_->isConnectedToHost()) {
+    qWarning("Trying to upload parameter %s when not connected",
+             qPrintable(parameter->name()));
+    return;
+  }
   if (parameter->value().isUndefined()) {
     qCritical("Ignore uploading undefined parameter %s",
               qPrintable(parameter->name()));
