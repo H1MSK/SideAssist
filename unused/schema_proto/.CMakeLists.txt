@@ -1,0 +1,17 @@
+cmake_minimum_required(VERSION 3.15)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+project(schema CXX)
+
+find_package(Protobuf REQUIRED)
+
+file(GLOB PROTOS ${CMAKE_CURRENT_SOURCE_DIR}/*.proto)
+
+LIST(APPEND PROTO_FLAGS -I${CMAKE_CURRENT_SOURCE_DIR})
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTOS})
+
+add_library(schema SHARED ${PROTO_SRCS} ${PROTO_HDRS})
+target_include_directories(schema PUBLIC ${PROTO_SRC_DIR})
+target_link_libraries(schema protobuf::libprotobuf)

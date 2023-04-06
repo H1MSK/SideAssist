@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package SideAssist.Common;
+
+import "value_constraint.proto";
+import "google/protobuf/any.proto";
+
+message BooleanValue  { bool    val = 1; }
+message IntValue      { sint64  val = 1; }
+message FloatValue    { double  val = 1; }
+message StringValue   { string  val = 1; }
+message RepeatedBooleanValue  { repeated bool    val = 1; }
+message RepeatedIntValue      { repeated sint64  val = 1; }
+message RepeatedFloatValue    { repeated double  val = 1; }
+message RepeatedStringValue   { repeated string  val = 1; }
+
+message NamedValue {
+  optional string name = 1;
+  google.protobuf.Any value = 2;
+}
+
+enum ValueTypeEnum {
+  option allow_alias = true;
+  VALUE_TYPE_NONE                                     = 0x00;
+
+  VALUE_TYPE_FIRST                                    = 0x01;
+
+  VALUE_TYPE_BOOLEAN                                  = 0x01;
+  VALUE_TYPE_INT                                      = 0x02;
+  VALUE_TYPE_FLOAT                                    = 0x03;
+  VALUE_TYPE_STRING                                   = 0x04;
+
+  VALUE_TYPE_LAST                                     = 0x04;
+}
+
+message NamedValueDef {
+  string name                                     = 1;
+  ValueTypeEnum type                              = 2;
+  bool allow_empty                                = 3;
+  bool is_repeated                                = 4;
+  optional ValueConstraintDef constraint          = 5;
+}

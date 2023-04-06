@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package SideAssist.Plugin;
+
+import "named_value.proto";
+
+enum ActionStatusEnum {
+  ACTION_STATUS_RESET                                 = 0x00;
+  ACTION_STATUS_STARTED                               = 0x01;
+  ACTION_STATUS_PENDING                               = 0x02;
+
+  ACTION_STATUS_ERROR                                 = 0x40;
+
+  // The action name is not found on core service
+  ACTION_STATUS_INVALID_NAME                          = 0x41;
+  // The id is not found on core service
+  ACTION_STATUS_INVALID_ID                            = 0x42;
+  // The action is not creatable
+  ACTION_STATUS_PENDING_LIST_FULL                     = 0x43;
+  // The action is currently launched and cannot be launched twice
+  ACTION_STATUS_HAS_BEEN_LAUNCHED                     = 0x44;
+  // The action is actively rejected
+  ACTION_STATUS_REJECTED                              = 0x45;
+}
+
+// Plugin->Core, Launch action on remote plugin
+message RemoteActionLaunchRequest {
+  int64 plugin_id                                     = 1;
+  oneof remote_id {
+    string remote_instance_name                       = 2;
+    int64 remote_plugin_id                            = 3;
+  }
+
+  string action_name                                  = 5;
+  repeated Common.NamedValue params                   = 6;
+}
+
+message RemoteActionQueryRequest {
+  int64 plugin_id                                     = 1;
+  oneof remote_id {
+    string remote_instance_name                       = 2;
+    int64 remote_plugin_id                            = 3;
+  }
+  int64 action_launch_id                              = 4;
+}
+
+// Core->Plugin, request an action launch
+message ActionLaunchRequest {
+  int64 plugin_id                                     = 1;
+  string action_name                                  = 2;
+  repeated Common.NamedValue params                   = 5;
+}
+
+message ActionQueryRequest {
+  int64 plugin_id                                     = 1;
+  int64 action_launch_id                              = 2;
+}
+
+message ActionResponse {
+  int64 action_launch_id                              = 1;
+  ActionStatusEnum status                             = 3;
+}
+
+message ActionFinishNotification {
+  int64 plugin_id                                     = 1;
+  int64 action_launch_id                              = 2;
+  ActionStatusEnum status                             = 3;
+  repeated Common.NamedValue results                  = 5;
+}
+
+message RemoteActionFinishNotification {
+  int64 plugin_id                                     = 1;
+  int64 remote_plugin_id                              = 2;
+  int64 action_launch_id                              = 3;
+  ActionStatusEnum status                             = 4;
+  repeated Common.NamedValue results                  = 5;
+}

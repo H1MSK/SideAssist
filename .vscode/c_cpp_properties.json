@@ -1,0 +1,32 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${vcpkgRoot}/x64-windows/include",
+                "${vcpkgRoot}/x86-windows/include",
+                "${workspaceFolder}/qt/third_party/qmqtt/src",
+                "${workspaceFolder}/qt/third_party/qmqtt/src/mqtt",
+                "D:/vcpkg/installed/x64-windows/include/Qt6/QtCore",
+                "D:/vcpkg/installed/x64-windows/include/Qt6",
+                "D:/vcpkg/installed/x64-windows/include/Qt6/QtNetwork",
+                "D:/vcpkg/installed/x64-windows/include/Qt6/QtWebSockets",
+                "D:/vcpkg/installed/x64-windows/include/Qt6/QtGui"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "QT_WEBSOCKETS_LIB",
+                "QT_BUILD_SIDEASSIST_LIB"
+            ],
+            "windowsSdkVersion": "10.0.22621.0",
+            "compilerPath": "cl.exe",
+            "cStandard": "c17",
+            "intelliSenseMode": "windows-msvc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools"
+        }
+    ],
+    "version": 4
+}

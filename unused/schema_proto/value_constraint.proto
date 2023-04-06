@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package SideAssist.Common;
+
+// [lower_bound, upper_bound)
+message IntRangeValueConstraintDef {
+  sint64 lower_bound = 1;
+  sint64 upper_bound = 2;
+  optional int64 step = 3;
+}
+
+// [lower_bound, upper_bound]
+message FloatRangeValueConstraintDef {
+  double lower_bound = 1;
+  double upper_bound = 2;
+}
+
+message OptionValueConstraintDef {
+  repeated string options = 1;
+}
+
+enum FileTypeEnum {
+  option allow_alias = true;
+
+  FILE_TYPE_NOT_INDICATED = 0x0000;
+
+  FILE_TYPE_MIN           = 0x0000;
+  FILE_TYPE_NOT_FOUND     = 0x0001;
+  FILE_TYPE_REGULAR       = 0x0002;
+  FILE_TYPE_DIRECTORY     = 0x0004;
+
+  FILE_TYPE_MAX           = 0x0007;
+
+  // Not currently supported
+  FILE_TYPE_SYMLINK       = 0x0008;
+  // Not currently supported
+  FILE_TYPE_BLOCK         = 0x0010;
+  // Not currently supported
+  FILE_TYPE_CHARACTER     = 0x0020;
+  // Not currently supported
+  FILE_TYPE_FIFO          = 0x0040;
+  // Not currently supported
+  FILE_TYPE_SOCKET        = 0x0080;
+
+  // Not currently supported
+  FILE_TYPE_NTFS_JUNCTION = 0x0100;
+
+  FILE_TYPE_UNKNOWN       = 0x8000;
+}
+
+message PathValueConstraintDef {
+  int32 min_mode = 1;
+  int32 max_mode = 2;
+
+  int32 min_type = 5;
+  int32 max_type = 6;
+
+  repeated string regexs = 9;
+}
+
+message ValueConstraintDef {
+  optional IntRangeValueConstraintDef int_range_constraint = 1;
+  optional FloatRangeValueConstraintDef float_range_constraint = 2;
+  optional OptionValueConstraintDef option_constraint = 3;
+  optional PathValueConstraintDef path_constraint = 4;
+}
