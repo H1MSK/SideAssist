@@ -53,6 +53,11 @@ target_compile_definitions( ${PROJECT_NAME}
         QT_BUILD_SIDEASSIST_LIB
         ${ssl_defs}
 )
+        
+target_compile_definitions( ${PROJECT_NAME}
+    PUBLIC
+        QT_MESSAGELOGCONTEXT
+)
 
 set_source_files_properties( ${PUBLIC_HEADERS} PROPERTIES PUBLIC_HEADER 1 )
 

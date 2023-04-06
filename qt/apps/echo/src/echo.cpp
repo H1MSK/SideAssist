@@ -8,6 +8,8 @@ int main(int argc, char* argv[]) {
   QCoreApplication app(argc, argv);
   client = std::make_shared<SideAssist::Qt::Client>();
   client->setClientId("echo");
+  client->installDefaultMessageHandler();
+
   client->setUsername("side_assist_client");
   client->setPassword("16509490");
   client->connectToHost();

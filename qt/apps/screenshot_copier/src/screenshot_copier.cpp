@@ -21,6 +21,8 @@ int main(int argc, char* argv[]) {
   monitor = std::make_shared<QFileSystemWatcher>();
 
   client->setClientId("screenshot_copier");
+  client->installDefaultMessageHandler();
+  
   client->setUsername("side_assist_client");
   client->setPassword("16509490");
 

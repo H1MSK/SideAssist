@@ -60,6 +60,8 @@ class Q_SIDEASSIST_EXPORT Client : public QObject {
   std::shared_ptr<NamedValue> parameter(const QString& name,
                                         bool createIfNotFound = false);
 
+  bool installDefaultMessageHandler();
+
  public slots:
   void setClientId(const QString& clientId);
   void setUsername(const QString& username);
