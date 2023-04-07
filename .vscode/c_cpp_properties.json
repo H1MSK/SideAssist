@@ -13,7 +13,8 @@
                 "D:/vcpkg/installed/x64-windows/include/Qt6/QtNetwork",
                 "D:/vcpkg/installed/x64-windows/include/Qt6/QtWebSockets",
                 "D:/vcpkg/installed/x64-windows/include/Qt6/QtGui",
-                "${workspaceFolder}/build/_deps/googletest-src/googletest/include"
+                "${workspaceFolder}/build/_deps/googletest-src/googletest/include",
+                "${workspaceFolder}/qt/include"
             ],
             "defines": [
                 "_DEBUG",
@@ -25,8 +26,7 @@
             "windowsSdkVersion": "10.0.22621.0",
             "compilerPath": "cl.exe",
             "cStandard": "c17",
-            "intelliSenseMode": "windows-msvc-x64",
-            "configurationProvider": "ms-vscode.cmake-tools"
+            "intelliSenseMode": "windows-msvc-x64"
         }
     ],
     "version": 4
