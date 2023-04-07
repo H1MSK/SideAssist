@@ -68,6 +68,8 @@ class Q_SIDEASSIST_EXPORT Client : public QObject {
   void setPassword(const QByteArray& password);
   void uploadChangedOptionValue();
   void uploadChangedParameterValue();
+  void uploadChangedOptionValidator();
+  void uploadChangedParameterValidator();
 
  signals:
   void connected();
@@ -78,6 +80,8 @@ class Q_SIDEASSIST_EXPORT Client : public QObject {
   void handleMessage(const QMQTT::Message& message);
   void uploadOptionValue(const NamedValue* option);
   void uploadParameterValue(const NamedValue* parameter);
+  void uploadOptionValidator(const NamedValue* option);
+  void uploadParameterValidator(const NamedValue* parameter);
   void uploadAll();
 
   void logConnected();

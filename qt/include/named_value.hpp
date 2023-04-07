@@ -5,6 +5,8 @@
 
 namespace SideAssist::Qt {
 
+class AbstractValueValidator;
+
 class Q_SIDEASSIST_EXPORT NamedValue : public QObject {
   Q_OBJECT
   Q_PROPERTY(QString name READ name MEMBER name_ CONSTANT)
@@ -14,8 +16,11 @@ class Q_SIDEASSIST_EXPORT NamedValue : public QObject {
  public:
   const QString& name() const { return name_; }
   const QJsonValue& value() const { return value_; }
+  const std::shared_ptr<AbstractValueValidator>& validator() const {
+    return validator_;
+  }
 
-  bool validate(const QJsonValue& val) const { return true; }
+  bool validate(const QJsonValue& val);
 
   NamedValue(const QString& name, const QJsonValue& value)
       : name_(name), value_(value) {}
@@ -25,22 +30,28 @@ class Q_SIDEASSIST_EXPORT NamedValue : public QObject {
       : NamedValue(std::move(other.name_), std::move(other.value_)) {}
 
  public slots:
-  bool setValue(const QJsonValue& value) {
+  void setValue(const QJsonValue& value) {
     if (value == value_)
-      return true;
-    if (!validate(value))
-      return false;
+      return;
     value_ = value;
     emit valueChanged(value_);
-    return true;
+  }
+  void setValidator(std::shared_ptr<AbstractValueValidator> validator) {
+    if (validator == validator_)
+      return;
+    validator_ = validator;
+    emit validatorChanged(validator);
   }
 
  signals:
   void valueChanged(const QJsonValue& value);
+  void validatorChanged(
+      const std::shared_ptr<AbstractValueValidator>& validator);
 
  private:
   const QString name_;
   QJsonValue value_;
+  std::shared_ptr<AbstractValueValidator> validator_;
 };
 
 }  // namespace SideAssist::Qt
