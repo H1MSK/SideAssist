@@ -1,17 +1,19 @@
 #include "value_validator.hpp"
+#include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonObject>
 
-namespace SideAssist::Qt {
+namespace SideAssist::Qt::ValueValidator {
 
-bool DummyValueValidator::validate(const QJsonValue& value) const noexcept {
+bool Dummy::validate(const QJsonValue& value) const noexcept {
   return true;
 }
 
-QJsonValue DummyValueValidator::serializeToJson() const noexcept {
+QJsonValue Dummy::serializeToJson() const noexcept {
   return QJsonObject({qMakePair("dummy", QJsonValue(QJsonValue::Null))});
 }
 
-std::shared_ptr<DummyValueValidator> DummyValueValidator::deserializeFromJson(
+std::shared_ptr<Dummy> Dummy::deserializeFromJson(
     const QJsonValue& validator,
     bool* is_this_type) {
   auto dummy = validator["dummy"];
@@ -19,38 +21,55 @@ std::shared_ptr<DummyValueValidator> DummyValueValidator::deserializeFromJson(
     return nullptr;
   if (is_this_type != nullptr)
     *is_this_type = true;
-  return std::make_shared<DummyValueValidator>();
+  return std::make_shared<Dummy>();
 }
 
-std::shared_ptr<AbstractValueValidator>
-AbstractValueValidator::deserializeFromJson(const QJsonValue& validator) {
+std::shared_ptr<Abstract>
+Abstract::deserializeFromJson(const QJsonValue& validator) {
   bool matched = false;
-  std::shared_ptr<AbstractValueValidator> ptr;
-  ptr = DummyValueValidator::deserializeFromJson(validator, &matched);
+  std::shared_ptr<Abstract> ptr;
+  ptr = Dummy::deserializeFromJson(validator, &matched);
   if (matched)
     return ptr;
-  ptr = TypesValueValidator::deserializeFromJson(validator, &matched);
+  ptr = Types::deserializeFromJson(validator, &matched);
   if (matched)
     return ptr;
-  ptr = PathValueValidator::deserializeFromJson(validator, &matched);
+  ptr = Path::deserializeFromJson(validator, &matched);
   if (matched)
     return ptr;
-  ptr = OptionValueValidator::deserializeFromJson(validator, &matched);
+  ptr = Option::deserializeFromJson(validator, &matched);
   if (matched)
     return ptr;
-  ptr = StringPrefixValueValidator::deserializeFromJson(validator, &matched);
+  ptr = StringPrefix::deserializeFromJson(validator, &matched);
   if (matched)
     return ptr;
-  ptr = StringSuffixValueValidator::deserializeFromJson(validator, &matched);
+  ptr = StringSuffix::deserializeFromJson(validator, &matched);
   if (matched)
     return ptr;
-  ptr = UnionValueValidator::deserializeFromJson(validator, &matched);
+  ptr = Any::deserializeFromJson(validator, &matched);
   if (matched)
     return ptr;
-  ptr = JoinValueValidator::deserializeFromJson(validator, &matched);
+  ptr = All::deserializeFromJson(validator, &matched);
   if (matched)
     return ptr;
   return nullptr;
 }
 
-}  // namespace SideAssist::Qt
+std::list<std::shared_ptr<Abstract>>
+AbstractArray::deserializeListFromJsonArray(const QJsonValue& validator) {
+  std::list<std::shared_ptr<Abstract>> list;
+  for (const auto& item : validator.toArray()) {
+    auto ptr = deserializeFromJson(item);
+    if (ptr != nullptr) {
+      list.push_back(ptr);
+    } else {
+      qWarning("Validator array contains invalid item: %s",
+               QJsonDocument(QJsonArray({item}))
+                   .toJson(QJsonDocument::Compact)
+                   .constData());
+    }
+  }
+  return list;
+}
+
+}  // namespace SideAssist::Qt::ValueValidator

@@ -3,9 +3,9 @@
 #include <QJsonObject>
 #include "value_validator.hpp"
 
-namespace SideAssist::Qt {
+namespace SideAssist::Qt::ValueValidator {
 
-bool StringPrefixValueValidator::validate(
+bool StringPrefix::validate(
     const QJsonValue& value) const noexcept {
   if (!value.isString())
     return false;
@@ -17,12 +17,12 @@ bool StringPrefixValueValidator::validate(
   return false;
 }
 
-QJsonValue StringPrefixValueValidator::serializeToJson() const noexcept {
+QJsonValue StringPrefix::serializeToJson() const noexcept {
   return QJsonObject({qMakePair("prefix", QJsonValue(QJsonValue::Null))});
 }
 
-std::shared_ptr<StringPrefixValueValidator>
-StringPrefixValueValidator::deserializeFromJson(const QJsonValue& validator,
+std::shared_ptr<StringPrefix>
+StringPrefix::deserializeFromJson(const QJsonValue& validator,
                                                 bool* is_this_type) {
   auto prefix_val = validator["prefix"];
   if (!prefix_val.isArray())
@@ -45,10 +45,10 @@ StringPrefixValueValidator::deserializeFromJson(const QJsonValue& validator,
     return nullptr;
   }
 
-  return std::make_shared<StringPrefixValueValidator>(std::move(prefixes));
+  return std::make_shared<StringPrefix>(std::move(prefixes));
 }
 
-bool StringSuffixValueValidator::validate(
+bool StringSuffix::validate(
     const QJsonValue& value) const noexcept {
   if (!value.isString())
     return false;
@@ -60,12 +60,12 @@ bool StringSuffixValueValidator::validate(
   return false;
 }
 
-QJsonValue StringSuffixValueValidator::serializeToJson() const noexcept {
+QJsonValue StringSuffix::serializeToJson() const noexcept {
   return QJsonObject({qMakePair("suffix", QJsonValue(QJsonValue::Null))});
 }
 
-std::shared_ptr<StringSuffixValueValidator>
-StringSuffixValueValidator::deserializeFromJson(const QJsonValue& validator,
+std::shared_ptr<StringSuffix>
+StringSuffix::deserializeFromJson(const QJsonValue& validator,
                                                 bool* is_this_type) {
   auto suffix_val = validator["suffix"];
   if (!suffix_val.isArray())
@@ -88,7 +88,7 @@ StringSuffixValueValidator::deserializeFromJson(const QJsonValue& validator,
     return nullptr;
   }
 
-  return std::make_shared<StringSuffixValueValidator>(std::move(suffixes));
+  return std::make_shared<StringSuffix>(std::move(suffixes));
 }
 
-}  // namespace SideAssist::Qt
+}  // namespace SideAssist::Qt::ValueValidator

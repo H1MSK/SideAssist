@@ -6,8 +6,7 @@
 #include <QWriteLocker>
 #include "value_validator.hpp"
 
-namespace SideAssist {
-namespace Qt {
+namespace SideAssist::Qt {
 
 std::shared_ptr<NamedValue> Client::addParameter(const QString& name) {
   QWriteLocker lock(&parameters_lock_);
@@ -29,7 +28,7 @@ std::shared_ptr<NamedValue> Client::addParameter(const QString& name) {
 }
 
 std::shared_ptr<NamedValue> Client::parameter(const QString& name,
-                                              bool createIfNotFound) {
+                                              bool create_if_not_found) {
   QReadLocker lock(&parameters_lock_);
   auto itr = parameters_.find(name);
   if (itr != parameters_.end())
@@ -37,7 +36,7 @@ std::shared_ptr<NamedValue> Client::parameter(const QString& name,
 
   lock.unlock();
 
-  if (createIfNotFound)
+  if (create_if_not_found)
     return addParameter(name);
   return nullptr;
 }
@@ -96,11 +95,10 @@ void Client::uploadParameterValidator(const NamedValue* parameter) {
   }
   QMQTT::Message message(0,
                          "side_assist/" + mqtt_client_->clientId() +
-                             "/parameter/" + parameter->name(),
+                             "/parameter/" + parameter->name() + "/validator",
                          buf, 2, true);
-  qInfo("Uploading parameter %s...", qUtf8Printable(parameter->name()));
+  qInfo("Uploading validator for parameter %s...", qUtf8Printable(parameter->name()));
   mqtt_client_->publish(message);
 }
 
-}  // namespace Qt
-}  // namespace SideAssist
+}  // namespace SideAssist::Qt

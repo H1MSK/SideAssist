@@ -6,22 +6,22 @@
 #include "value_validator.hpp"
 
 TEST(ValueValidator, Dummy) {
-  auto ptr = SideAssist::Qt::AbstractValueValidator::deserializeFromJson(
+  auto ptr = SideAssist::Qt::ValueValidator::Abstract::deserializeFromJson(
       QJsonObject({qMakePair("dummy", QJsonValue())}));
   EXPECT_NE(ptr, nullptr);
   bool ret = ptr->validate(QJsonValue());
   EXPECT_TRUE(ret);
   auto val = ptr->serializeToJson();
   bool is_this_type = false;
-  auto ptr1 = SideAssist::Qt::DummyValueValidator::deserializeFromJson(
+  auto ptr1 = SideAssist::Qt::ValueValidator::Dummy::deserializeFromJson(
       val, &is_this_type);
   EXPECT_TRUE(is_this_type);
 }
 
 TEST(ValueValidator, Type) {
-  auto ptr = SideAssist::Qt::AbstractValueValidator::deserializeFromJson(
+  auto ptr = SideAssist::Qt::ValueValidator::Abstract::deserializeFromJson(
       QJsonObject({qMakePair(
-          "type", QJsonArray({QJsonValue("Null"), QJsonValue("Integer")}))}));
+          "types", QJsonArray({QJsonValue("Null"), QJsonValue("Integer")}))}));
   EXPECT_NE(ptr, nullptr);
 
   bool ret = ptr->validate(QJsonValue());
@@ -41,13 +41,13 @@ TEST(ValueValidator, Type) {
 
   auto val = ptr->serializeToJson();
   bool is_this_type = false;
-  auto ptr1 = SideAssist::Qt::TypesValueValidator::deserializeFromJson(
+  auto ptr1 = SideAssist::Qt::ValueValidator::Types::deserializeFromJson(
       val, &is_this_type);
   EXPECT_TRUE(is_this_type);
 }
 
 TEST(ValueValidator, FilePath) {
-  auto ptr = SideAssist::Qt::AbstractValueValidator::deserializeFromJson(
+  auto ptr = SideAssist::Qt::ValueValidator::Abstract::deserializeFromJson(
       QJsonObject({qMakePair(
           "path",
           QJsonObject(
@@ -55,8 +55,10 @@ TEST(ValueValidator, FilePath) {
                qMakePair(
                    "type",
                    QJsonArray(
-                       {QJsonValue((qint64)SideAssist::Qt::PathTypeFieldEnum::File),
-                        QJsonValue((qint64)SideAssist::Qt::PathTypeFieldEnum::File)}))}))}));
+                       {QJsonValue((qint64)SideAssist::Qt::ValueValidator::
+                                       PathTypeFieldEnum::File),
+                        QJsonValue((qint64)SideAssist::Qt::ValueValidator::
+                                       PathTypeFieldEnum::File)}))}))}));
   EXPECT_NE(ptr, nullptr);
 
   bool ret = ptr->validate(QJsonValue());
@@ -81,13 +83,13 @@ TEST(ValueValidator, FilePath) {
 
   auto val = ptr->serializeToJson();
   bool is_this_type = false;
-  auto ptr1 = SideAssist::Qt::PathValueValidator::deserializeFromJson(
+  auto ptr1 = SideAssist::Qt::ValueValidator::Path::deserializeFromJson(
       val, &is_this_type);
   EXPECT_TRUE(is_this_type);
 }
 
 TEST(ValueValidator, DirPath) {
-  auto ptr = SideAssist::Qt::AbstractValueValidator::deserializeFromJson(
+  auto ptr = SideAssist::Qt::ValueValidator::Abstract::deserializeFromJson(
       QJsonObject({qMakePair(
           "path",
           QJsonObject(
@@ -95,8 +97,10 @@ TEST(ValueValidator, DirPath) {
                qMakePair(
                    "type",
                    QJsonArray(
-                       {QJsonValue((qint64)SideAssist::Qt::PathTypeFieldEnum::Dir),
-                        QJsonValue((qint64)SideAssist::Qt::PathTypeFieldEnum::Dir)}))}))}));
+                       {QJsonValue((qint64)SideAssist::Qt::ValueValidator::
+                                       PathTypeFieldEnum::Dir),
+                        QJsonValue((qint64)SideAssist::Qt::ValueValidator::
+                                       PathTypeFieldEnum::Dir)}))}))}));
   EXPECT_NE(ptr, nullptr);
 
   bool ret = ptr->validate(QJsonValue());
@@ -121,13 +125,13 @@ TEST(ValueValidator, DirPath) {
 
   auto val = ptr->serializeToJson();
   bool is_this_type = false;
-  auto ptr1 = SideAssist::Qt::PathValueValidator::deserializeFromJson(
+  auto ptr1 = SideAssist::Qt::ValueValidator::Path::deserializeFromJson(
       val, &is_this_type);
   EXPECT_TRUE(is_this_type);
 }
 
 TEST(ValueValidator, ReadOnlyFilePath) {
-  auto ptr = SideAssist::Qt::AbstractValueValidator::deserializeFromJson(
+  auto ptr = SideAssist::Qt::ValueValidator::Abstract::deserializeFromJson(
       QJsonObject({qMakePair(
           "path",
           QJsonObject(
@@ -135,13 +139,18 @@ TEST(ValueValidator, ReadOnlyFilePath) {
                qMakePair(
                    "type",
                    QJsonArray(
-                       {QJsonValue((qint64)SideAssist::Qt::PathTypeFieldEnum::File),
-                        QJsonValue((qint64)SideAssist::Qt::PathTypeFieldEnum::File)})),
+                       {QJsonValue((qint64)SideAssist::Qt::ValueValidator::
+                                       PathTypeFieldEnum::File),
+                        QJsonValue((qint64)SideAssist::Qt::ValueValidator::
+                                       PathTypeFieldEnum::File)})),
                qMakePair(
                    "perm",
                    QJsonArray(
-                       {QJsonValue((qint64)SideAssist::Qt::PathPermissionFieldEnum::None),
-                        QJsonValue((qint64)SideAssist::Qt::PathPermissionFieldEnum::Readable)}))}))}));
+                       {QJsonValue((qint64)SideAssist::Qt::ValueValidator::
+                                       PathPermissionFieldEnum::None),
+                        QJsonValue(
+                            (qint64)SideAssist::Qt::ValueValidator::
+                                PathPermissionFieldEnum::Readable)}))}))}));
   EXPECT_NE(ptr, nullptr);
 
   bool ret = ptr->validate(QJsonValue());
@@ -166,7 +175,7 @@ TEST(ValueValidator, ReadOnlyFilePath) {
 
   auto val = ptr->serializeToJson();
   bool is_this_type = false;
-  auto ptr1 = SideAssist::Qt::PathValueValidator::deserializeFromJson(
+  auto ptr1 = SideAssist::Qt::ValueValidator::Path::deserializeFromJson(
       val, &is_this_type);
   EXPECT_TRUE(is_this_type);
 }

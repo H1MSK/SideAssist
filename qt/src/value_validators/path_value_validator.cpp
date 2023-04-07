@@ -4,9 +4,9 @@
 #include <QJsonObject>
 #include "value_validator.hpp"
 
-namespace SideAssist::Qt {
+namespace SideAssist::Qt::ValueValidator {
 
-bool PathValueValidator::validate(const QJsonValue& value) const noexcept {
+bool Path::validate(const QJsonValue& value) const noexcept {
   if (!value.isString())
     return false;
   QFileInfo info(value.toString());
@@ -32,7 +32,7 @@ bool PathValueValidator::validate(const QJsonValue& value) const noexcept {
   return true;
 }
 
-QJsonValue PathValueValidator::serializeToJson() const noexcept {
+QJsonValue Path::serializeToJson() const noexcept {
   QJsonObject obj;
   if (existance_ != PathExistanceFieldEnum::Undefined)
     obj.insert("existance", existance_ == PathExistanceFieldEnum::Exist);
@@ -47,7 +47,7 @@ QJsonValue PathValueValidator::serializeToJson() const noexcept {
   return QJsonObject({qMakePair("path", obj)});
 }
 
-std::shared_ptr<PathValueValidator> PathValueValidator::deserializeFromJson(
+std::shared_ptr<Path> Path::deserializeFromJson(
     const QJsonValue& validator,
     bool* is_this_type) {
   auto val = validator["path"];
@@ -103,8 +103,8 @@ std::shared_ptr<PathValueValidator> PathValueValidator::deserializeFromJson(
       return nullptr;
     }
   }
-  return std::make_shared<PathValueValidator>(exist, min_perm, max_perm,
+  return std::make_shared<Path>(exist, min_perm, max_perm,
                                               min_type, max_type);
 }
 
-}  // namespace SideAssist::Qt
+}  // namespace SideAssist::Qt::ValueValidator

@@ -38,8 +38,12 @@ struct FieldEnum {
     return *this;
   }
 
-  constexpr bool operator==(FieldEnum other) const { return value == other.value; }
-  constexpr bool operator!=(FieldEnum other) const { return value != other.value; }
+  constexpr bool operator==(FieldEnum other) const {
+    return value == other.value;
+  }
+  constexpr bool operator!=(FieldEnum other) const {
+    return value != other.value;
+  }
 
   constexpr bool between(FieldEnum lower, FieldEnum upper) const {
     return (*this & lower) == lower && (*this | upper) == upper;

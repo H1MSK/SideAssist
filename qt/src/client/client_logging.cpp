@@ -1,8 +1,10 @@
 #include <QDateTime>
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QString>
+#include <QMutex>
 #include "client.hpp"
 
 namespace SideAssist::Qt {
@@ -11,11 +13,13 @@ static std::shared_ptr<QFile> log_file;
 static void messageHandler(QtMsgType type,
                            const QMessageLogContext& context,
                            const QString& msg) {
-  static QRegularExpression re(
-      R"RAW(.+ ([A-Za-z_].+)\(.+?$)RAW");
+  static QMutex log_mutex;
+  static QRegularExpression re(R"RAW(.+ ([A-Za-z_].+)\(.+?$)RAW");
   auto funcsig = QString(context.function);
   auto matches = re.match(funcsig);
   QString func_name = matches.captured(1).replace("SideAssist::Qt::", "");
+  if (func_name.isEmpty())
+    func_name = funcsig;
 
   QString level_name;
   switch (type) {
@@ -43,24 +47,65 @@ static void messageHandler(QtMsgType type,
                   .arg(level_name)
                   .arg(func_name)
                   .arg(msg);
-  fprintf(stderr, "%s", qPrintable(line));
+  
+  {
+    QMutexLocker locker(&log_mutex);
+    fprintf(stderr, "%s", qPrintable(line));
+  }
   log_file->write(line.toLocal8Bit());
   log_file->flush();
 }
 
 bool Client::installDefaultMessageHandler() {
+  // Assure the handler is not set yet
   Q_ASSERT(log_file == nullptr);
+
+  // Generate directory string & QFileInfo
   QString id = mqtt_client_->clientId();
   Q_ASSERT(!id.isEmpty());
-  auto file = std::make_shared<QFile>(id + ".log");
+  auto log_dir_string = QDir::current().canonicalPath() + "/log";
+  auto log_dir_info = QFileInfo(log_dir_string);
+
+  // Create the directory if not found
+  if (auto info = QFileInfo(log_dir_string); !info.isDir()) {
+    bool succeed = info.dir().mkdir("log");
+    if (!succeed) {
+      qCritical("Cannot create log directory on %s",
+                qUtf8Printable(log_dir_string));
+      return false;
+    }
+  }
+
+  // Rename the previous file to {dir}/{id}.{num}.log
+  QString log_file_name = log_dir_string + '/' + id + ".log";
+  if (QFileInfo::exists(log_file_name)) {
+    int count = 1;
+    QString first_not_occupied;
+    do {
+      first_not_occupied =
+          log_dir_string + '/' + id + '.' + QString::number(count) + ".log";
+      ++count;
+    } while (QFileInfo::exists(first_not_occupied));
+    bool succeed = QFile::rename(log_file_name, first_not_occupied);
+    if (!succeed) {
+      qCritical("Cannot rename old log file %s", qUtf8Printable(log_file_name));
+      return false;
+    }
+  }
+
+  // Open file
+  auto file = std::make_shared<QFile>(log_dir_string + '/' + id + ".log");
   bool ret = file->open(QIODeviceBase::Append | QIODeviceBase::Text);
   if (!ret) {
     qCritical("Log file open failed: %s",
               qUtf8Printable(QFileInfo(*file).canonicalFilePath()));
     return false;
   }
-  log_file = file;
+  log_file = std::move(file);
+
+  // Set handler
   qInstallMessageHandler(messageHandler);
+  qInfo("Default message handler installed.");
   return true;
 }
 
@@ -74,11 +119,16 @@ void Client::logDisconnected() {
 }
 
 void Client::logPublished(const QMQTT::Message& message, quint16 id) {
-  qInfo("Published message#%d on topic %s", id, qUtf8Printable(message.topic()));
+  qInfo("Published message#%d on topic %s", id,
+        qUtf8Printable(message.topic()));
 }
 
 void Client::logSubscribed(const QString& topic, const quint8 qos) {
   qInfo("Subscribed with qos=%d to topic %s", qos, qUtf8Printable(topic));
+}
+
+void Client::logUnsubscribed(const QString& topic) {
+  qInfo("Unsubscribed from topic %s", qUtf8Printable(topic));
 }
 
 void Client::handleMqttError(const QMQTT::ClientError error) {

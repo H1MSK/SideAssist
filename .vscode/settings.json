@@ -94,7 +94,9 @@
         "qjsonobject": "cpp",
         "qreadlocker": "cpp",
         "qwritelocker": "cpp",
-        "any": "cpp"
+        "any": "cpp",
+        "codecvt": "cpp",
+        "unordered_set": "cpp"
     },
     "cmake.toolset": "",
     "cmake.configureArgs": [

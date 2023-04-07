@@ -1,41 +1,40 @@
 #pragma once
 
 #include <QJsonValue>
+#include <list>
 #include <set>
 #include "field_enum.hpp"
 #include "global.hpp"
 
-namespace SideAssist::Qt {
+namespace SideAssist::Qt::ValueValidator {
 
 namespace Internal {}  // namespace Internal
 
-class Q_SIDEASSIST_EXPORT AbstractValueValidator {
+class Q_SIDEASSIST_EXPORT Abstract {
  public:
   virtual bool validate(const QJsonValue& value) const noexcept = 0;
   virtual QJsonValue serializeToJson() const noexcept = 0;
-  static std::shared_ptr<AbstractValueValidator> deserializeFromJson(
+  static std::shared_ptr<Abstract> deserializeFromJson(
       const QJsonValue& validator);
-  constexpr explicit AbstractValueValidator() noexcept {}
-  constexpr AbstractValueValidator(const AbstractValueValidator&) noexcept =
-      default;
-  constexpr AbstractValueValidator(AbstractValueValidator&&) noexcept = default;
+  constexpr explicit Abstract() noexcept {}
+  constexpr Abstract(const Abstract&) noexcept = default;
+  constexpr Abstract(Abstract&&) noexcept = default;
 };
 
-class Q_SIDEASSIST_EXPORT DummyValueValidator : public AbstractValueValidator {
+class Q_SIDEASSIST_EXPORT Dummy : public Abstract {
  public:
   virtual bool validate(const QJsonValue& value) const noexcept final;
   virtual QJsonValue serializeToJson() const noexcept final;
 
-  DummyValueValidator() = default;
-  DummyValueValidator(const DummyValueValidator&) = default;
-  DummyValueValidator(DummyValueValidator&&) = default;
+  Dummy() = default;
+  Dummy(const Dummy&) = default;
+  Dummy(Dummy&&) = default;
 
-  static std::shared_ptr<DummyValueValidator> deserializeFromJson(
-      const QJsonValue& validator,
-      bool* is_this_type);
+  static std::shared_ptr<Dummy> deserializeFromJson(const QJsonValue& validator,
+                                                    bool* is_this_type);
 };
 
-enum class JsonTypeFieldEnum {
+enum class ValueTypeFieldEnum {
   Undefined = 0x00,
   Null = 0x01,
   Bool = 0x02,
@@ -45,80 +44,77 @@ enum class JsonTypeFieldEnum {
   Array = 0x20,
   Object = 0x40,
 };
-using JsonTypeField = FieldEnum<JsonTypeFieldEnum>;
+using ValueTypeField = FieldEnum<ValueTypeFieldEnum>;
 
-class Q_SIDEASSIST_EXPORT SingleTypeValueValidator : public AbstractValueValidator {
+class Q_SIDEASSIST_EXPORT SingleType : public Abstract {
  public:
-
   virtual bool validate(const QJsonValue& value) const noexcept final;
   virtual QJsonValue serializeToJson() const noexcept final;
-  static std::shared_ptr<SingleTypeValueValidator> deserializeFromJson(
+  static std::shared_ptr<SingleType> deserializeFromJson(
       const QJsonValue& validator,
       bool* is_this_type);
 
-  constexpr SingleTypeValueValidator(QJsonValue::Type type) noexcept
+  constexpr SingleType(QJsonValue::Type type) noexcept
       : type_(typeToField(type)) {}
-  constexpr SingleTypeValueValidator(JsonTypeField field) : type_(field) {
+  constexpr SingleType(ValueTypeField field) : type_(field) {
     // Has more than 1 bit set
-    if ((JsonTypeField::NumericType(field) & (field-1)) != 0)
+    if ((ValueTypeField::NumericType(field) & (field - 1)) != 0)
       throw std::invalid_argument("Field should contain only one bit");
   }
 
-  constexpr SingleTypeValueValidator(const SingleTypeValueValidator&) noexcept = default;
-  constexpr SingleTypeValueValidator(SingleTypeValueValidator&&) noexcept = default;
+  constexpr SingleType(const SingleType&) noexcept = default;
+  constexpr SingleType(SingleType&&) noexcept = default;
 
-  constexpr inline static JsonTypeField typeToField(
+  constexpr inline static ValueTypeField typeToField(
       QJsonValue::Type type) noexcept {
     switch (type) {
       case QJsonValue::Null:
-        return JsonTypeFieldEnum::Null;
+        return ValueTypeFieldEnum::Null;
       case QJsonValue::Bool:
-        return JsonTypeFieldEnum::Bool;
+        return ValueTypeFieldEnum::Bool;
       case QJsonValue::Double:
-        return JsonTypeFieldEnum::Double;
+        return ValueTypeFieldEnum::Double;
       case QJsonValue::String:
-        return JsonTypeFieldEnum::String;
+        return ValueTypeFieldEnum::String;
       case QJsonValue::Array:
-        return JsonTypeFieldEnum::Array;
+        return ValueTypeFieldEnum::Array;
       case QJsonValue::Object:
-        return JsonTypeFieldEnum::Object;
+        return ValueTypeFieldEnum::Object;
       default:
-        return JsonTypeFieldEnum::Undefined;
+        return ValueTypeFieldEnum::Undefined;
     }
   }
+
  private:
-  JsonTypeField type_;
+  ValueTypeField type_;
 };
 
-class Q_SIDEASSIST_EXPORT TypesValueValidator : public AbstractValueValidator {
+class Q_SIDEASSIST_EXPORT Types : public Abstract {
  public:
-
   virtual bool validate(const QJsonValue& value) const noexcept final;
   virtual QJsonValue serializeToJson() const noexcept final;
-  static std::shared_ptr<TypesValueValidator> deserializeFromJson(
-      const QJsonValue& validator,
-      bool* is_this_type);
+  static std::shared_ptr<Types> deserializeFromJson(const QJsonValue& validator,
+                                                    bool* is_this_type);
 
-  constexpr TypesValueValidator(JsonTypeField field) noexcept : type_field_(field) {}
+  constexpr Types(ValueTypeField field) noexcept : type_field_(field) {}
 
-  constexpr TypesValueValidator(QJsonValue::Type type) noexcept
-      : type_field_(SingleTypeValueValidator::typeToField(type)) {}
-  constexpr TypesValueValidator(
-      std::initializer_list<QJsonValue::Type> types) noexcept
+  constexpr Types(QJsonValue::Type type) noexcept
+      : type_field_(SingleType::typeToField(type)) {}
+  constexpr Types(std::initializer_list<QJsonValue::Type> types) noexcept
       : type_field_(typesToField(types)) {}
-  constexpr TypesValueValidator(const TypesValueValidator&) noexcept = default;
-  constexpr TypesValueValidator(TypesValueValidator&&) noexcept = default;
+  constexpr Types(const Types&) noexcept = default;
+  constexpr Types(Types&&) noexcept = default;
 
-  constexpr inline static JsonTypeField typesToField(
+  constexpr inline static ValueTypeField typesToField(
       std::initializer_list<QJsonValue::Type> types) noexcept {
-    JsonTypeField f = JsonTypeFieldEnum::Undefined;
+    ValueTypeField f = ValueTypeFieldEnum::Undefined;
     for (auto type : types)
-      f |= SingleTypeValueValidator::typeToField(type);
+      f |= SingleType::typeToField(type);
     return f;
   }
 
  private:
-  JsonTypeField type_field_;
+  ValueTypeField type_field_;
 };
 
 enum class PathExistanceFieldEnum {
@@ -143,50 +139,46 @@ using PathExistanceField = FieldEnum<PathExistanceFieldEnum>;
 using PathPermissionField = FieldEnum<PathPermissionFieldEnum>;
 using PathTypeField = FieldEnum<PathTypeFieldEnum>;
 
-class Q_SIDEASSIST_EXPORT PathValueValidator : public AbstractValueValidator {
+class Q_SIDEASSIST_EXPORT Path : public Abstract {
  public:
-
   virtual bool validate(const QJsonValue& value) const noexcept final;
   virtual QJsonValue serializeToJson() const noexcept final;
-  static std::shared_ptr<PathValueValidator> deserializeFromJson(
-      const QJsonValue& validator,
-      bool* is_this_type);
+  static std::shared_ptr<Path> deserializeFromJson(const QJsonValue& validator,
+                                                   bool* is_this_type);
 
-  PathValueValidator(PathExistanceField exist,
-                     PathPermissionField min_perm = PathPermissionFieldEnum::None,
-                     PathPermissionField max_perm = PathPermissionFieldEnum::All,
-                     PathTypeField min_type = PathTypeFieldEnum::Undefined,
-                     PathTypeField max_type = PathTypeFieldEnum::All)
+  Path(PathExistanceField exist,
+       PathPermissionField min_perm = PathPermissionFieldEnum::None,
+       PathPermissionField max_perm = PathPermissionFieldEnum::All,
+       PathTypeField min_type = PathTypeFieldEnum::Undefined,
+       PathTypeField max_type = PathTypeFieldEnum::All)
       : existance_(exist),
         min_perm_(min_perm),
         max_perm_(max_perm),
         min_type_(min_type),
         max_type_(max_type) {}
-  PathValueValidator(PathExistanceField exist,
-                     PathTypeField min_type,
-                     PathTypeField max_type)
-      : PathValueValidator(exist,
-                           PathPermissionFieldEnum::None,
-                           PathPermissionFieldEnum::All,
-                           min_type,
-                           max_type) {}
-  PathValueValidator(PathPermissionField min_perm,
-                     PathPermissionField max_perm,
-                     PathTypeField min_type = PathTypeFieldEnum::Undefined,
-                     PathTypeField max_type = PathTypeFieldEnum::All)
-      : PathValueValidator(PathExistanceFieldEnum::Undefined,
-                           min_perm,
-                           max_perm,
-                           min_type,
-                           max_type) {}
-  PathValueValidator(PathTypeField min_type, PathTypeField max_type)
-      : PathValueValidator(PathExistanceFieldEnum::Undefined,
-                           PathPermissionFieldEnum::None,
-                           PathPermissionFieldEnum::All,
-                           min_type,
-                           max_type) {}
-  PathValueValidator(const PathValueValidator&) = default;
-  PathValueValidator(PathValueValidator&&) = default;
+  Path(PathExistanceField exist, PathTypeField min_type, PathTypeField max_type)
+      : Path(exist,
+             PathPermissionFieldEnum::None,
+             PathPermissionFieldEnum::All,
+             min_type,
+             max_type) {}
+  Path(PathPermissionField min_perm,
+       PathPermissionField max_perm,
+       PathTypeField min_type = PathTypeFieldEnum::Undefined,
+       PathTypeField max_type = PathTypeFieldEnum::All)
+      : Path(PathExistanceFieldEnum::Undefined,
+             min_perm,
+             max_perm,
+             min_type,
+             max_type) {}
+  Path(PathTypeField min_type, PathTypeField max_type)
+      : Path(PathExistanceFieldEnum::Undefined,
+             PathPermissionFieldEnum::None,
+             PathPermissionFieldEnum::All,
+             min_type,
+             max_type) {}
+  Path(const Path&) = default;
+  Path(Path&&) = default;
 
  private:
   PathExistanceField existance_;
@@ -194,35 +186,33 @@ class Q_SIDEASSIST_EXPORT PathValueValidator : public AbstractValueValidator {
   PathTypeField min_type_, max_type_;
 };
 
-class Q_SIDEASSIST_EXPORT OptionValueValidator : public AbstractValueValidator {
+class Q_SIDEASSIST_EXPORT Option : public Abstract {
  public:
   virtual bool validate(const QJsonValue& value) const noexcept final;
   virtual QJsonValue serializeToJson() const noexcept final;
 
-  OptionValueValidator(const std::set<QString>& options) : options_(options) {}
-  OptionValueValidator(std::set<QString>&& options) : options_(options) {}
-  OptionValueValidator(const OptionValueValidator&) = default;
-  OptionValueValidator(OptionValueValidator&&) = default;
+  Option(const std::set<QString>& options) : options_(options) {}
+  Option(std::set<QString>&& options) : options_(options) {}
+  Option(const Option&) = default;
+  Option(Option&&) = default;
 
-  static std::shared_ptr<OptionValueValidator> deserializeFromJson(
+  static std::shared_ptr<Option> deserializeFromJson(
       const QJsonValue& validator,
       bool* is_this_type);
 
   std::set<QString> options_;
 };
 
-class Q_SIDEASSIST_EXPORT StringPrefixValueValidator
-    : public AbstractValueValidator {
+class Q_SIDEASSIST_EXPORT StringPrefix : public Abstract {
  public:
   virtual bool validate(const QJsonValue& value) const noexcept final;
   virtual QJsonValue serializeToJson() const noexcept final;
 
-  StringPrefixValueValidator(const std::set<QString>& prefix)
-      : prefixes_(prefix) {}
-  StringPrefixValueValidator(std::set<QString>&& prefix) : prefixes_(prefix) {}
-  StringPrefixValueValidator(StringPrefixValueValidator&&) = default;
+  StringPrefix(const std::set<QString>& prefix) : prefixes_(prefix) {}
+  StringPrefix(std::set<QString>&& prefix) : prefixes_(prefix) {}
+  StringPrefix(StringPrefix&&) = default;
 
-  static std::shared_ptr<StringPrefixValueValidator> deserializeFromJson(
+  static std::shared_ptr<StringPrefix> deserializeFromJson(
       const QJsonValue& validator,
       bool* is_this_type);
 
@@ -230,18 +220,16 @@ class Q_SIDEASSIST_EXPORT StringPrefixValueValidator
   std::set<QString> prefixes_;
 };
 
-class Q_SIDEASSIST_EXPORT StringSuffixValueValidator
-    : public AbstractValueValidator {
+class Q_SIDEASSIST_EXPORT StringSuffix : public Abstract {
  public:
   virtual bool validate(const QJsonValue& value) const noexcept final;
   virtual QJsonValue serializeToJson() const noexcept final;
 
-  StringSuffixValueValidator(const std::set<QString>& suffix)
-      : suffixes_(suffix) {}
-  StringSuffixValueValidator(std::set<QString>&& suffix) : suffixes_(suffix) {}
-  StringSuffixValueValidator(StringSuffixValueValidator&&) = default;
+  StringSuffix(const std::set<QString>& suffix) : suffixes_(suffix) {}
+  StringSuffix(std::set<QString>&& suffix) : suffixes_(suffix) {}
+  StringSuffix(StringSuffix&&) = default;
 
-  static std::shared_ptr<StringSuffixValueValidator> deserializeFromJson(
+  static std::shared_ptr<StringSuffix> deserializeFromJson(
       const QJsonValue& validator,
       bool* is_this_type);
 
@@ -249,46 +237,65 @@ class Q_SIDEASSIST_EXPORT StringSuffixValueValidator
   std::set<QString> suffixes_;
 };
 
-class Q_SIDEASSIST_EXPORT UnionValueValidator : public AbstractValueValidator {
+class Q_SIDEASSIST_EXPORT AbstractArray : public Abstract {
+ public:
+  AbstractArray(const std::list<std::shared_ptr<Abstract>>& validators)
+      : validators_(validators) {}
+  AbstractArray(std::list<std::shared_ptr<Abstract>>&& validators)
+      : validators_(validators) {}
+  AbstractArray(const AbstractArray&) = default;
+  AbstractArray(AbstractArray&&) = default;
+
+  static std::list<std::shared_ptr<Abstract>> deserializeListFromJsonArray(
+      const QJsonValue& validator);
+
+  auto begin() const { return validators_.begin(); }
+  auto end() const { return validators_.end(); }
+
+ private:
+  std::list<std::shared_ptr<Abstract>> validators_;
+};
+
+class Q_SIDEASSIST_EXPORT Any : public AbstractArray {
  public:
   virtual bool validate(const QJsonValue& value) const noexcept final;
   virtual QJsonValue serializeToJson() const noexcept final;
 
-  UnionValueValidator(
-      const std::set<std::shared_ptr<AbstractValueValidator>>& validators)
-      : validators_(validators) {}
-  UnionValueValidator(
-      std::set<std::shared_ptr<AbstractValueValidator>>&& validators)
-      : validators_(validators) {}
-  UnionValueValidator(const UnionValueValidator&) = default;
-  UnionValueValidator(UnionValueValidator&&) = default;
+  using AbstractArray::AbstractArray;
 
-  static std::shared_ptr<UnionValueValidator> deserializeFromJson(
-      const QJsonValue& validator,
-      bool* is_this_type);
-
-  std::set<std::shared_ptr<AbstractValueValidator>> validators_;
+  static std::shared_ptr<Any> deserializeFromJson(const QJsonValue& validator,
+                                                  bool* is_this_type);
 };
 
-class Q_SIDEASSIST_EXPORT JoinValueValidator : public AbstractValueValidator {
+class Q_SIDEASSIST_EXPORT All : public AbstractArray {
  public:
   virtual bool validate(const QJsonValue& value) const noexcept final;
   virtual QJsonValue serializeToJson() const noexcept final;
 
-  JoinValueValidator(
-      const std::set<std::shared_ptr<AbstractValueValidator>>& validators)
-      : validators_(validators) {}
-  JoinValueValidator(
-      std::set<std::shared_ptr<AbstractValueValidator>>&& validators)
-      : validators_(validators) {}
-  JoinValueValidator(const JoinValueValidator&) = default;
-  JoinValueValidator(JoinValueValidator&&) = default;
+  using AbstractArray::AbstractArray;
 
-  static std::shared_ptr<JoinValueValidator> deserializeFromJson(
+  static std::shared_ptr<All> deserializeFromJson(const QJsonValue& validator,
+                                                  bool* is_this_type);
+};
+
+class Q_SIDEASSIST_EXPORT ListItem : public Abstract {
+ public:
+  virtual bool validate(const QJsonValue& value) const noexcept final;
+  virtual QJsonValue serializeToJson() const noexcept final;
+
+  ListItem(const std::shared_ptr<Abstract>& item_validator)
+      : item_validator_(item_validator) {}
+  ListItem(std::shared_ptr<Abstract>&& item_validator)
+      : item_validator_(std::move(item_validator)) {}
+  ListItem(const ListItem&) = default;
+  ListItem(ListItem&&) = default;
+
+  static std::shared_ptr<ListItem> deserializeFromJson(
       const QJsonValue& validator,
       bool* is_this_type);
 
-  std::set<std::shared_ptr<AbstractValueValidator>> validators_;
+ private:
+  std::shared_ptr<Abstract> item_validator_;
 };
 
-}  // namespace SideAssist::Qt
+}  // namespace SideAssist::Qt::ValueValidator

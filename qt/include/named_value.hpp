@@ -5,7 +5,9 @@
 
 namespace SideAssist::Qt {
 
-class AbstractValueValidator;
+namespace ValueValidator {
+class Abstract;
+}  // namespace ValueValidator
 
 class Q_SIDEASSIST_EXPORT NamedValue : public QObject {
   Q_OBJECT
@@ -16,7 +18,7 @@ class Q_SIDEASSIST_EXPORT NamedValue : public QObject {
  public:
   const QString& name() const { return name_; }
   const QJsonValue& value() const { return value_; }
-  const std::shared_ptr<AbstractValueValidator>& validator() const {
+  const std::shared_ptr<ValueValidator::Abstract>& validator() const {
     return validator_;
   }
 
@@ -36,7 +38,7 @@ class Q_SIDEASSIST_EXPORT NamedValue : public QObject {
     value_ = value;
     emit valueChanged(value_);
   }
-  void setValidator(std::shared_ptr<AbstractValueValidator> validator) {
+  void setValidator(std::shared_ptr<ValueValidator::Abstract> validator) {
     if (validator == validator_)
       return;
     validator_ = validator;
@@ -46,12 +48,12 @@ class Q_SIDEASSIST_EXPORT NamedValue : public QObject {
  signals:
   void valueChanged(const QJsonValue& value);
   void validatorChanged(
-      const std::shared_ptr<AbstractValueValidator>& validator);
+      const std::shared_ptr<ValueValidator::Abstract>& validator);
 
  private:
   const QString name_;
   QJsonValue value_;
-  std::shared_ptr<AbstractValueValidator> validator_;
+  std::shared_ptr<ValueValidator::Abstract> validator_;
 };
 
 }  // namespace SideAssist::Qt

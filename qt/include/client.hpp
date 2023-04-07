@@ -53,12 +53,16 @@ class Q_SIDEASSIST_EXPORT Client : public QObject {
 
   void connectToHost();
 
-  std::shared_ptr<NamedValue> addOption(const QString& name);
-  std::shared_ptr<NamedValue> option(const QString& name,
-                                     bool createIfNotFound = false);
+  std::shared_ptr<NamedValue> addOption(
+      const QString& name,
+      bool accept_remote_initial_value = true);
+  std::shared_ptr<NamedValue> option(
+      const QString& name,
+      bool create_if_not_found = false,
+      bool accept_remote_initial_value_if_created = true);
   std::shared_ptr<NamedValue> addParameter(const QString& name);
   std::shared_ptr<NamedValue> parameter(const QString& name,
-                                        bool createIfNotFound = false);
+                                        bool create_if_not_found = false);
 
   bool installDefaultMessageHandler();
 
@@ -66,17 +70,19 @@ class Q_SIDEASSIST_EXPORT Client : public QObject {
   void setClientId(const QString& clientId);
   void setUsername(const QString& username);
   void setPassword(const QByteArray& password);
+
   void uploadChangedOptionValue();
   void uploadChangedParameterValue();
   void uploadChangedOptionValidator();
   void uploadChangedParameterValidator();
+  void unsubscribeInitialValueWhenOptionIsNotUndefined();
 
  signals:
   void connected();
   void disconnected();
 
  private slots:
-  void setupSideAssistConnection();
+  void setupSubscriptions();
   void handleMessage(const QMQTT::Message& message);
   void uploadOptionValue(const NamedValue* option);
   void uploadParameterValue(const NamedValue* parameter);
@@ -84,10 +90,14 @@ class Q_SIDEASSIST_EXPORT Client : public QObject {
   void uploadParameterValidator(const NamedValue* parameter);
   void uploadAll();
 
+  void setupSubscriptionsForOption(const NamedValue* option,
+                                   bool accept_remote_initial_value);
+
   void logConnected();
   void logDisconnected();
   void logPublished(const QMQTT::Message& message, quint16 id);
   void logSubscribed(const QString& topic, const quint8 qos);
+  void logUnsubscribed(const QString& topic);
   void handleMqttError(const QMQTT::ClientError error);
 
  private:

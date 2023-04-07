@@ -9,6 +9,7 @@
 #include <memory>
 #include <mutex>
 #include "client.hpp"
+#include "value_validator.hpp"
 
 std::mutex mutex;
 std::list<QString> monitored_paths;
@@ -58,6 +59,7 @@ void tryCopyImage(const QString& path) {
 }
 
 int main(int argc, char* argv[]) {
+  namespace Validator = SideAssist::Qt::ValueValidator;
   QGuiApplication app(argc, argv);
   client = std::make_shared<SideAssist::Qt::Client>();
   monitor = std::make_shared<QFileSystemWatcher>();
@@ -76,7 +78,11 @@ int main(int argc, char* argv[]) {
 
   filename->setValue("");
   timestamp->setValue(0);
-  monitored_path->setValue(QJsonArray());
+  monitored_path->setValidator(
+      std::make_shared<Validator::ListItem>(std::make_shared<Validator::Path>(
+          Validator::PathExistanceFieldEnum::Exist,
+          Validator::PathTypeFieldEnum::Dir,
+          Validator::PathTypeFieldEnum::Dir)));
 
   QObject::connect(monitored_path.get(),
                    &SideAssist::Qt::NamedValue::valueChanged,

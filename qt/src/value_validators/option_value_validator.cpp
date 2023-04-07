@@ -3,20 +3,20 @@
 #include <QJsonObject>
 #include "value_validator.hpp"
 
-namespace SideAssist::Qt {
+namespace SideAssist::Qt::ValueValidator {
 
-bool OptionValueValidator::validate(const QJsonValue& value) const noexcept {
+bool Option::validate(const QJsonValue& value) const noexcept {
   return value.isString() && options_.find(value.toString()) != options_.end();
 }
 
-QJsonValue OptionValueValidator::serializeToJson() const noexcept {
+QJsonValue Option::serializeToJson() const noexcept {
   QJsonArray arr;
   for (const auto& str : options_)
     arr.append(str);
   return QJsonObject({qMakePair("options", arr)});
 }
 
-std::shared_ptr<OptionValueValidator> OptionValueValidator::deserializeFromJson(
+std::shared_ptr<Option> Option::deserializeFromJson(
     const QJsonValue& validator,
     bool* is_this_type) {
   auto options = validator["options"];
@@ -40,7 +40,7 @@ std::shared_ptr<OptionValueValidator> OptionValueValidator::deserializeFromJson(
     return nullptr;
   }
 
-  return std::make_shared<OptionValueValidator>(std::move(option_set));
+  return std::make_shared<Option>(std::move(option_set));
 }
 
-}  // namespace SideAssist::Qt
+}  // namespace SideAssist::Qt::ValueValidator

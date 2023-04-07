@@ -2,8 +2,7 @@
 #include <QReadLocker>
 #include <QWriteLocker>
 
-namespace SideAssist {
-namespace Qt {
+namespace SideAssist::Qt {
 
 Client::Client(const QHostAddress& host, const quint16 port, QObject* parent)
     : mqtt_client_(std::make_unique<QMQTT::Client>(host, port, parent)) {
@@ -59,19 +58,25 @@ void Client::connectSignals() {
           &Client::disconnected);
   connect(this, &Client::disconnected, this, &Client::logDisconnected);
 
+  connect(mqtt_client_.get(), &QMQTT::Client::subscribed, this,
+          &Client::logSubscribed);
+  connect(mqtt_client_.get(), &QMQTT::Client::unsubscribed, this,
+          &Client::logUnsubscribed);
   connect(mqtt_client_.get(), &QMQTT::Client::published, this,
           &Client::logPublished);
 
-  connect(mqtt_client_.get(), &QMQTT::Client::error, this, &Client::handleMqttError);
+  connect(mqtt_client_.get(), &QMQTT::Client::error, this,
+          &Client::handleMqttError);
 
   connect(mqtt_client_.get(), &QMQTT::Client::connected, this,
-          &Client::setupSideAssistConnection);
+          &Client::setupSubscriptions);
   connect(this, &Client::connected, this, &Client::uploadAll);
   connect(mqtt_client_.get(), &QMQTT::Client::received, this,
           &Client::handleMessage);
 }
 
 void Client::connectToHost() {
+  mqtt_client_->setCleanSession(true);
   mqtt_client_->connectToHost();
 }
 
@@ -87,11 +92,13 @@ void Client::setPassword(const QByteArray& password) {
   mqtt_client_->setPassword(password);
 }
 
-void Client::setupSideAssistConnection() {
-  qInfo("Setting up SideAssist connection to %s",
-        qUtf8Printable(mqtt_client_->host().toString()));
-  mqtt_client_->subscribe(
-      "side_assist/" + mqtt_client_->clientId() + "/option/#", 2);
+void Client::setupSubscriptions() {
+  {
+    QReadLocker lock(&options_lock_);
+    for (auto& itr : options_) {
+      setupSubscriptionsForOption(itr.second.get(), itr.second->value().isUndefined());
+    }
+  }
 }
 
 void Client::uploadAll() {
@@ -117,5 +124,4 @@ void Client::uploadAll() {
   }
 }
 
-}  // namespace Qt
-}  // namespace SideAssist
+}  // namespace SideAssist::Qt

@@ -1,15 +1,16 @@
-#include "client.hpp"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QReadLocker>
 #include <QWriteLocker>
+#include "client.hpp"
 #include "value_validator.hpp"
 
-namespace SideAssist {
-namespace Qt {
+namespace SideAssist::Qt {
 
-std::shared_ptr<NamedValue> Client::addOption(const QString& name) {
+std::shared_ptr<NamedValue> Client::addOption(
+    const QString& name,
+    bool accept_remote_initial_value) {
   QWriteLocker lock(&options_lock_);
   auto itr = options_.emplace(
       name,
@@ -21,6 +22,9 @@ std::shared_ptr<NamedValue> Client::addOption(const QString& name) {
             &Client::uploadChangedOptionValue);
     connect(itr.first->second.get(), &NamedValue::validatorChanged, this,
             &Client::uploadChangedOptionValidator);
+    if (mqtt_client_->isConnectedToHost())
+      setupSubscriptionsForOption(itr.first->second.get(),
+                                  accept_remote_initial_value);
   } else {
     qWarning("Trying to create existed parameter %s", qUtf8Printable(name));
   }
@@ -28,8 +32,10 @@ std::shared_ptr<NamedValue> Client::addOption(const QString& name) {
   return itr.first->second;
 }
 
-std::shared_ptr<NamedValue> Client::option(const QString& name,
-                                           bool createIfNotFound) {
+std::shared_ptr<NamedValue> Client::option(
+    const QString& name,
+    bool create_if_not_found,
+    bool accept_remote_initial_value_if_created) {
   QReadLocker lock(&options_lock_);
   auto itr = options_.find(name);
   if (itr != options_.end())
@@ -37,8 +43,8 @@ std::shared_ptr<NamedValue> Client::option(const QString& name,
 
   lock.unlock();
 
-  if (createIfNotFound)
-    return addOption(name);
+  if (create_if_not_found)
+    return addOption(name, accept_remote_initial_value_if_created);
   return nullptr;
 }
 
@@ -94,13 +100,43 @@ void Client::uploadOptionValidator(const NamedValue* option) {
                                      option->validator()->serializeToJson())}))
               .toJson(QJsonDocument::Compact);
   }
-  QMQTT::Message message(
-      0,
-      "side_assist/" + mqtt_client_->clientId() + "/option/" + option->name(),
-      buf, 2, true);
-  qInfo("Uploading option %s...", qUtf8Printable(option->name()));
+  QMQTT::Message message(0,
+                         "side_assist/" + mqtt_client_->clientId() +
+                             "/option/" + option->name() + "/validator",
+                         buf, 2, true);
+  qInfo("Uploading validator for option %s...", qUtf8Printable(option->name()));
   mqtt_client_->publish(message);
 }
 
-}  // namespace Qt
-}  // namespace SideAssist
+void Client::unsubscribeInitialValueWhenOptionIsNotUndefined() {
+  if (!mqtt_client_->isConnectedToHost())
+    return;
+  const auto* opt = dynamic_cast<const NamedValue*>(sender());
+  assert(opt != nullptr);
+  assert(options_.find(opt->name()) != options_.end());
+  if (!opt->value().isUndefined()) {
+    auto sync_topic =
+        "side_assist/" + mqtt_client_->clientId() + "/option/" + opt->name();
+    mqtt_client_->unsubscribe(sync_topic);
+    disconnect(opt, &NamedValue::valueChanged, this,
+               &Client::unsubscribeInitialValueWhenOptionIsNotUndefined);
+  }
+}
+
+void Client::setupSubscriptionsForOption(const NamedValue* option,
+                                         bool accept_remote_initial_value) {
+  if (!mqtt_client_->isConnectedToHost())
+    return;
+  auto sync_topic =
+      "side_assist/" + mqtt_client_->clientId() + "/option/" + option->name();
+  auto remote_set_topic = sync_topic + "/set";
+  mqtt_client_->subscribe(remote_set_topic, 1);
+
+  if (accept_remote_initial_value) {
+    mqtt_client_->subscribe(sync_topic, 2);
+    connect(option, &NamedValue::valueChanged, this,
+            &Client::unsubscribeInitialValueWhenOptionIsNotUndefined);
+  }
+}
+
+}  // namespace SideAssist::Qt
