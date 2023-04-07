@@ -12,7 +12,8 @@
                 "D:/vcpkg/installed/x64-windows/include/Qt6",
                 "D:/vcpkg/installed/x64-windows/include/Qt6/QtNetwork",
                 "D:/vcpkg/installed/x64-windows/include/Qt6/QtWebSockets",
-                "D:/vcpkg/installed/x64-windows/include/Qt6/QtGui"
+                "D:/vcpkg/installed/x64-windows/include/Qt6/QtGui",
+                "${workspaceFolder}/build/_deps/googletest-src/googletest/include"
             ],
             "defines": [
                 "_DEBUG",

@@ -84,10 +84,20 @@
         "qbytearray": "cpp",
         "qjsondocument": "cpp",
         "qreadwritelock": "cpp",
-        "resumable": "cpp"
+        "resumable": "cpp",
+        "qsslconfiguration": "cpp",
+        "qmessagelogcontext": "cpp",
+        "qjsonvalue": "cpp",
+        "qjsonarray": "cpp",
+        "qregularexpression": "cpp",
+        "qstring": "cpp",
+        "qjsonobject": "cpp",
+        "qreadlocker": "cpp",
+        "qwritelocker": "cpp"
     },
     "cmake.toolset": "",
     "cmake.configureArgs": [
         "-DCMAKE_TOOLCHAIN_FILE:STRING=\"d:/vcpkg/scripts/buildsystems/vcpkg.cmake\""
-    ]
+    ],
+    "editor.tabSize": 2
 }
