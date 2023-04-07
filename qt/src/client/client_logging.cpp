@@ -46,9 +46,6 @@ static void messageHandler(QtMsgType type,
   fprintf(stderr, "%s", qPrintable(line));
   log_file->write(line.toLocal8Bit());
   log_file->flush();
-  if (type == QtFatalMsg) {
-    abort();
-  }
 }
 
 bool Client::installDefaultMessageHandler() {
@@ -59,7 +56,7 @@ bool Client::installDefaultMessageHandler() {
   bool ret = file->open(QIODeviceBase::Append | QIODeviceBase::Text);
   if (!ret) {
     qCritical("Log file open failed: %s",
-              qPrintable(QFileInfo(*file).canonicalFilePath()));
+              qUtf8Printable(QFileInfo(*file).canonicalFilePath()));
     return false;
   }
   log_file = file;
@@ -68,23 +65,28 @@ bool Client::installDefaultMessageHandler() {
 }
 
 void Client::logConnected() {
-  qInfo("Connected to %s", qPrintable(mqtt_client_->host().toString()));
+  qInfo("Connected to %s", qUtf8Printable(mqtt_client_->host().toString()));
 }
 
 void Client::logDisconnected() {
   qCritical("Disconnected from %s",
-            qPrintable(mqtt_client_->host().toString()));
+            qUtf8Printable(mqtt_client_->host().toString()));
 }
 
 void Client::logPublished(const QMQTT::Message& message, quint16 id) {
-  qInfo("Published message#%d on topic %s", id, qPrintable(message.topic()));
+  qInfo("Published message#%d on topic %s", id, qUtf8Printable(message.topic()));
 }
 
 void Client::logSubscribed(const QString& topic, const quint8 qos) {
-  qInfo("Subscribed with qos=%d to topic %s", qos, qPrintable(topic));
+  qInfo("Subscribed with qos=%d to topic %s", qos, qUtf8Printable(topic));
 }
 
-void Client::logError(const QMQTT::ClientError error) {
+void Client::handleMqttError(const QMQTT::ClientError error) {
+  if (error == QMQTT::ClientError::SocketConnectionRefusedError) {
+    qCritical("Could not connect to server!");
+    qInfo("Exiting...");
+    exit(1);
+  }
   qCritical("MQTT Client error: %d", error);
 }
 

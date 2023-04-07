@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
 
   auto int_opt = client->addOption("int");
   auto int_param = client->addParameter("int_param");
-  int_opt->setValidator(std::make_shared<SideAssist::Qt::TypeValueValidator>(
+  int_opt->setValidator(std::make_shared<SideAssist::Qt::SingleTypeValueValidator>(
       SideAssist::Qt::JsonTypeFieldEnum::Integer));
   QObject::connect(int_opt.get(), &SideAssist::Qt::NamedValue::valueChanged,
                    int_param.get(), &SideAssist::Qt::NamedValue::setValue);
@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
 
   auto plain_opt = client->addOption("plain");
   auto plain_param = client->addParameter("plain_param");
-  plain_opt->setValidator(std::make_shared<SideAssist::Qt::TypeValueValidator>(
+  plain_opt->setValidator(std::make_shared<SideAssist::Qt::TypesValueValidator>(
       SideAssist::Qt::JsonTypeField() |
       SideAssist::Qt::JsonTypeFieldEnum::Integer |
       SideAssist::Qt::JsonTypeFieldEnum::Bool |

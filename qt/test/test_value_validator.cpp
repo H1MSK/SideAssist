@@ -41,7 +41,7 @@ TEST(ValueValidator, Type) {
 
   auto val = ptr->serializeToJson();
   bool is_this_type = false;
-  auto ptr1 = SideAssist::Qt::TypeValueValidator::deserializeFromJson(
+  auto ptr1 = SideAssist::Qt::TypesValueValidator::deserializeFromJson(
       val, &is_this_type);
   EXPECT_TRUE(is_this_type);
 }

@@ -5,12 +5,74 @@
 
 namespace SideAssist::Qt {
 
-bool TypeValueValidator::validate(const QJsonValue& value) const noexcept {
+bool SingleTypeValueValidator::validate(
+    const QJsonValue& value) const noexcept {
+  if (type_ == JsonTypeFieldEnum::Integer)
+    return value.toInteger(-1) != -1 || value.toInteger(0) != 0;
+  return typeToField(value.type()) == type_;
+}
+
+QJsonValue SingleTypeValueValidator::serializeToJson() const noexcept {
+  QString name;
+  switch (type_) {
+    case QJsonValue::Null:
+      name = "Null";
+      break;
+    case QJsonValue::Bool:
+      name = "Bool";
+      break;
+    case QJsonValue::Double:
+      name = "Double";
+      break;
+    case QJsonValue::String:
+      name = "String";
+      break;
+    case QJsonValue::Array:
+      name = "Array";
+      break;
+    case QJsonValue::Object:
+      name = "Object";
+      break;
+  }
+  return QJsonObject({qMakePair("type", name)});
+}
+
+std::shared_ptr<SingleTypeValueValidator>
+SingleTypeValueValidator::deserializeFromJson(const QJsonValue& validator,
+                                              bool* is_this_type) {
+  auto name_val = validator["types"];
+  if (!name_val.isString())
+    return nullptr;
+
+  if (is_this_type != nullptr)
+    *is_this_type = true;
+
+  QString name = name_val.toString();
+
+  QJsonValue::Type type;
+
+  if (name == "Null")
+    type = QJsonValue::Null;
+  else if (name == "Bool")
+    type = QJsonValue::Bool;
+  else if (name == "Double")
+    type = QJsonValue::Double;
+  else if (name == "String")
+    type = QJsonValue::String;
+  else if (name == "Array")
+    type = QJsonValue::Array;
+  else if (name == "Object")
+    type = QJsonValue::Object;
+
+  return std::make_shared<SingleTypeValueValidator>(type);
+}
+
+bool TypesValueValidator::validate(const QJsonValue& value) const noexcept {
   if ((type_field_ & JsonTypeFieldEnum::Null) && value.isNull())
     return true;
   if ((type_field_ & JsonTypeFieldEnum::Bool) && value.isBool())
     return true;
-  if ((type_field_ & JsonTypeFieldEnum::Integer) && value.isDouble() &&
+  if ((type_field_ & JsonTypeFieldEnum::Integer) &&
       (value.toInteger(-1) != -1 || value.toInteger(0) != 0))
     return true;
   if ((type_field_ & JsonTypeFieldEnum::Double) && value.isDouble())
@@ -24,7 +86,7 @@ bool TypeValueValidator::validate(const QJsonValue& value) const noexcept {
   return false;
 }
 
-QJsonValue TypeValueValidator::serializeToJson() const noexcept {
+QJsonValue TypesValueValidator::serializeToJson() const noexcept {
   QJsonArray arr;
   if (type_field_ & JsonTypeFieldEnum::Null)
     arr.append("Null");
@@ -40,13 +102,13 @@ QJsonValue TypeValueValidator::serializeToJson() const noexcept {
     arr.append("Array");
   if (type_field_ & JsonTypeFieldEnum::Object)
     arr.append("Object");
-  return QJsonObject({qMakePair("type", arr)});
+  return QJsonObject({qMakePair("types", arr)});
 }
 
-std::shared_ptr<TypeValueValidator> TypeValueValidator::deserializeFromJson(
+std::shared_ptr<TypesValueValidator> TypesValueValidator::deserializeFromJson(
     const QJsonValue& validator,
     bool* is_this_type) {
-  auto obj = validator["type"];
+  auto obj = validator["types"];
   if (!obj.isArray())
     return nullptr;
 
@@ -88,7 +150,7 @@ std::shared_ptr<TypeValueValidator> TypeValueValidator::deserializeFromJson(
   }
   if (f == JsonTypeFieldEnum::Undefined)
     return nullptr;
-  return std::make_shared<TypeValueValidator>(f);
+  return std::make_shared<TypesValueValidator>(f);
 }
 
 }  // namespace SideAssist::Qt

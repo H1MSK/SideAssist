@@ -33,23 +33,23 @@ void updateMonitoredPath(const QJsonValue& val) {
     if (!info.isDir())
       continue;
     monitor->addPath(path);
-    qInfo("Added monitor path %s", qPrintable(path));
+    qInfo("Added monitor path %s", qUtf8Printable(path));
   }
 }
 
 void tryCopyImage(const QString& path) {
-  qInfo("Detected directory %s changed.", qPrintable(path));
+  qInfo("Detected directory %s changed.", qUtf8Printable(path));
   for (auto info : QDir(path).entryInfoList(QDir::Filter::Files, QDir::Time)) {
     auto time = info.lastModified().toMSecsSinceEpoch();
     if (time < timestamp->value().toInteger()) {
-      qInfo("Nothing new in dir %s.", qPrintable(path));
+      qInfo("Nothing new in dir %s.", qUtf8Printable(path));
       break;
     }
     QImage img(info.canonicalFilePath());
     if (img.isNull())
       continue;
-    qInfo("New image %s in dir %s.", qPrintable(info.fileName()),
-          qPrintable(path));
+    qInfo("New image %s in dir %s.", qUtf8Printable(info.fileName()),
+          qUtf8Printable(path));
     QGuiApplication::clipboard()->setImage(img);
     filename->setValue(info.canonicalFilePath());
     timestamp->setValue(time);

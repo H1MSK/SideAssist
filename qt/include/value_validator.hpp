@@ -47,27 +47,27 @@ enum class JsonTypeFieldEnum {
 };
 using JsonTypeField = FieldEnum<JsonTypeFieldEnum>;
 
-class Q_SIDEASSIST_EXPORT TypeValueValidator : public AbstractValueValidator {
+class Q_SIDEASSIST_EXPORT SingleTypeValueValidator : public AbstractValueValidator {
  public:
 
   virtual bool validate(const QJsonValue& value) const noexcept final;
   virtual QJsonValue serializeToJson() const noexcept final;
-  static std::shared_ptr<TypeValueValidator> deserializeFromJson(
+  static std::shared_ptr<SingleTypeValueValidator> deserializeFromJson(
       const QJsonValue& validator,
       bool* is_this_type);
 
-  constexpr TypeValueValidator(JsonTypeField field) noexcept : type_field_(field) {}
+  constexpr SingleTypeValueValidator(QJsonValue::Type type) noexcept
+      : type_(typeToField(type)) {}
+  constexpr SingleTypeValueValidator(JsonTypeField field) : type_(field) {
+    // Has more than 1 bit set
+    if ((JsonTypeField::NumericType(field) & (field-1)) != 0)
+      throw std::invalid_argument("Field should contain only one bit");
+  }
 
-  constexpr TypeValueValidator(QJsonValue::Type type) noexcept
-      : type_field_(singleTypeToField(type)) {}
-  constexpr TypeValueValidator(
-      std::initializer_list<QJsonValue::Type> types) noexcept
-      : type_field_(typesToField(types)) {}
-  constexpr TypeValueValidator(const TypeValueValidator&) noexcept = default;
-  constexpr TypeValueValidator(TypeValueValidator&&) noexcept = default;
+  constexpr SingleTypeValueValidator(const SingleTypeValueValidator&) noexcept = default;
+  constexpr SingleTypeValueValidator(SingleTypeValueValidator&&) noexcept = default;
 
- protected:
-  constexpr inline static JsonTypeField singleTypeToField(
+  constexpr inline static JsonTypeField typeToField(
       QJsonValue::Type type) noexcept {
     switch (type) {
       case QJsonValue::Null:
@@ -86,11 +86,34 @@ class Q_SIDEASSIST_EXPORT TypeValueValidator : public AbstractValueValidator {
         return JsonTypeFieldEnum::Undefined;
     }
   }
+ private:
+  JsonTypeField type_;
+};
+
+class Q_SIDEASSIST_EXPORT TypesValueValidator : public AbstractValueValidator {
+ public:
+
+  virtual bool validate(const QJsonValue& value) const noexcept final;
+  virtual QJsonValue serializeToJson() const noexcept final;
+  static std::shared_ptr<TypesValueValidator> deserializeFromJson(
+      const QJsonValue& validator,
+      bool* is_this_type);
+
+  constexpr TypesValueValidator(JsonTypeField field) noexcept : type_field_(field) {}
+
+  constexpr TypesValueValidator(QJsonValue::Type type) noexcept
+      : type_field_(SingleTypeValueValidator::typeToField(type)) {}
+  constexpr TypesValueValidator(
+      std::initializer_list<QJsonValue::Type> types) noexcept
+      : type_field_(typesToField(types)) {}
+  constexpr TypesValueValidator(const TypesValueValidator&) noexcept = default;
+  constexpr TypesValueValidator(TypesValueValidator&&) noexcept = default;
+
   constexpr inline static JsonTypeField typesToField(
       std::initializer_list<QJsonValue::Type> types) noexcept {
     JsonTypeField f = JsonTypeFieldEnum::Undefined;
     for (auto type : types)
-      f |= singleTypeToField(type);
+      f |= SingleTypeValueValidator::typeToField(type);
     return f;
   }
 

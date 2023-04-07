@@ -62,7 +62,7 @@ void Client::connectSignals() {
   connect(mqtt_client_.get(), &QMQTT::Client::published, this,
           &Client::logPublished);
 
-  connect(mqtt_client_.get(), &QMQTT::Client::error, this, &Client::logError);
+  connect(mqtt_client_.get(), &QMQTT::Client::error, this, &Client::handleMqttError);
 
   connect(mqtt_client_.get(), &QMQTT::Client::connected, this,
           &Client::setupSideAssistConnection);
@@ -89,7 +89,7 @@ void Client::setPassword(const QByteArray& password) {
 
 void Client::setupSideAssistConnection() {
   qInfo("Setting up SideAssist connection to %s",
-        qPrintable(mqtt_client_->host().toString()));
+        qUtf8Printable(mqtt_client_->host().toString()));
   mqtt_client_->subscribe(
       "side_assist/" + mqtt_client_->clientId() + "/option/#", 2);
 }
@@ -98,13 +98,21 @@ void Client::uploadAll() {
   {
     QReadLocker lock(&options_lock_);
     for (auto& itr : options_) {
-      uploadOptionValue(itr.second.get());
+      auto& ptr = itr.second;
+      if (ptr->value().type() != QJsonValue::Undefined)
+        uploadOptionValue(ptr.get());
+      if (ptr->validator())
+        uploadOptionValidator(ptr.get());
     }
   }
   {
     QReadLocker lock(&parameters_lock_);
     for (auto& itr : parameters_) {
-      uploadParameterValue(itr.second.get());
+      auto& ptr = itr.second;
+      if (ptr->value().type() != QJsonValue::Undefined)
+        uploadOptionValue(ptr.get());
+      if (ptr->validator())
+        uploadOptionValidator(ptr.get());
     }
   }
 }

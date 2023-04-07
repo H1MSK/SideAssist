@@ -16,13 +16,13 @@ std::shared_ptr<NamedValue> Client::addOption(const QString& name) {
       std::make_shared<NamedValue>(name, QJsonValue(QJsonValue::Undefined)));
 
   if (itr.second) {
-    qInfo("Created option %s", qPrintable(name));
+    qInfo("Created option %s", qUtf8Printable(name));
     connect(itr.first->second.get(), &NamedValue::valueChanged, this,
             &Client::uploadChangedOptionValue);
     connect(itr.first->second.get(), &NamedValue::validatorChanged, this,
             &Client::uploadChangedOptionValidator);
   } else {
-    qWarning("Trying to create existed parameter %s", qPrintable(name));
+    qWarning("Trying to create existed parameter %s", qUtf8Printable(name));
   }
   // uploadOptionValue(itr.first->second.get());
   return itr.first->second;
@@ -63,12 +63,12 @@ void Client::uploadChangedOptionValidator() {
 void Client::uploadOptionValue(const NamedValue* option) {
   if (!mqtt_client_->isConnectedToHost()) {
     qWarning("Trying to upload option %s when not connected",
-             qPrintable(option->name()));
+             qUtf8Printable(option->name()));
     return;
   }
   if (option->value().isUndefined()) {
     qCritical("Ignore uploading undefined option %s",
-              qPrintable(option->name()));
+              qUtf8Printable(option->name()));
     return;
   }
   QMQTT::Message message(
@@ -77,14 +77,14 @@ void Client::uploadOptionValue(const NamedValue* option) {
       QJsonDocument(QJsonObject({qMakePair("value", option->value())}))
           .toJson(QJsonDocument::Compact),
       2, true);
-  qInfo("Uploading option %s...", qPrintable(option->name()));
+  qInfo("Uploading option %s...", qUtf8Printable(option->name()));
   mqtt_client_->publish(message);
 }
 
 void Client::uploadOptionValidator(const NamedValue* option) {
   if (!mqtt_client_->isConnectedToHost()) {
-    qWarning("Trying to upload option %s when not connected",
-             qPrintable(option->name()));
+    qWarning("Trying to upload validator of option %s when not connected",
+             qUtf8Printable(option->name()));
     return;
   }
   QByteArray buf;
@@ -98,7 +98,7 @@ void Client::uploadOptionValidator(const NamedValue* option) {
       0,
       "side_assist/" + mqtt_client_->clientId() + "/option/" + option->name(),
       buf, 2, true);
-  qInfo("Uploading option %s...", qPrintable(option->name()));
+  qInfo("Uploading option %s...", qUtf8Printable(option->name()));
   mqtt_client_->publish(message);
 }
 

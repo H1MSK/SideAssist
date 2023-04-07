@@ -88,7 +88,7 @@ class Q_SIDEASSIST_EXPORT Client : public QObject {
   void logDisconnected();
   void logPublished(const QMQTT::Message& message, quint16 id);
   void logSubscribed(const QString& topic, const quint8 qos);
-  void logError(const QMQTT::ClientError error);
+  void handleMqttError(const QMQTT::ClientError error);
 
  private:
   void connectSignals();

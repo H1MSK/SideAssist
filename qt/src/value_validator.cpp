@@ -29,7 +29,7 @@ AbstractValueValidator::deserializeFromJson(const QJsonValue& validator) {
   ptr = DummyValueValidator::deserializeFromJson(validator, &matched);
   if (matched)
     return ptr;
-  ptr = TypeValueValidator::deserializeFromJson(validator, &matched);
+  ptr = TypesValueValidator::deserializeFromJson(validator, &matched);
   if (matched)
     return ptr;
   ptr = PathValueValidator::deserializeFromJson(validator, &matched);

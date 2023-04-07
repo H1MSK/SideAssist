@@ -16,13 +16,13 @@ std::shared_ptr<NamedValue> Client::addParameter(const QString& name) {
       std::make_shared<NamedValue>(name, QJsonValue(QJsonValue::Undefined)));
 
   if (itr.second) {
-    qInfo("Created parameter %s", qPrintable(name));
+    qInfo("Created parameter %s", qUtf8Printable(name));
     connect(itr.first->second.get(), &NamedValue::valueChanged, this,
             &Client::uploadChangedParameterValue);
     connect(itr.first->second.get(), &NamedValue::validatorChanged, this,
             &Client::uploadChangedParameterValidator);
   } else {
-    qWarning("Trying to create existed parameter %s", qPrintable(name));
+    qWarning("Trying to create existed parameter %s", qUtf8Printable(name));
   }
   // uploadParameterValue(itr.first->second.get());
   return itr.first->second;
@@ -63,12 +63,12 @@ void Client::uploadChangedParameterValidator() {
 void Client::uploadParameterValue(const NamedValue* parameter) {
   if (!mqtt_client_->isConnectedToHost()) {
     qWarning("Trying to upload parameter %s when not connected",
-             qPrintable(parameter->name()));
+             qUtf8Printable(parameter->name()));
     return;
   }
   if (parameter->value().isUndefined()) {
     qCritical("Ignore uploading undefined parameter %s",
-              qPrintable(parameter->name()));
+              qUtf8Printable(parameter->name()));
     return;
   }
   QMQTT::Message message(
@@ -77,14 +77,14 @@ void Client::uploadParameterValue(const NamedValue* parameter) {
       QJsonDocument(QJsonObject({qMakePair("value", parameter->value())}))
           .toJson(QJsonDocument::Compact),
       2, true);
-  qInfo("Uploading parameter %s...", qPrintable(parameter->name()));
+  qInfo("Uploading parameter %s...", qUtf8Printable(parameter->name()));
   mqtt_client_->publish(message);
 }
 
 void Client::uploadParameterValidator(const NamedValue* parameter) {
   if (!mqtt_client_->isConnectedToHost()) {
     qWarning("Trying to upload option %s when not connected",
-             qPrintable(parameter->name()));
+             qUtf8Printable(parameter->name()));
     return;
   }
   QByteArray buf;
@@ -98,7 +98,7 @@ void Client::uploadParameterValidator(const NamedValue* parameter) {
                          "side_assist/" + mqtt_client_->clientId() +
                              "/parameter/" + parameter->name(),
                          buf, 2, true);
-  qInfo("Uploading parameter %s...", qPrintable(parameter->name()));
+  qInfo("Uploading parameter %s...", qUtf8Printable(parameter->name()));
   mqtt_client_->publish(message);
 }
 

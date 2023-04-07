@@ -8,25 +8,25 @@ void Client::handleMessage(const QMQTT::Message& message) {
   const QString& topic = message.topic();
   QString start = "side_assist/" + mqtt_client_->clientId() + "/";
   if (!topic.startsWith(start)) {
-    qCritical("Illegal topic prefix: %s", qPrintable(topic));
+    qCritical("Illegal topic prefix: %s", qUtf8Printable(topic));
     return;
   }
   QStringList seg = topic.right(topic.length() - start.length()).split('/');
 
   if (seg.length() == 0) {
-    qCritical("Illegal topic: %s", qPrintable(topic));
+    qCritical("Illegal topic: %s", qUtf8Printable(topic));
     return;
   }
 
   if (seg[0] == "option") {
     bool remoteSavedLocalValue = seg.length() == 2;
     if (!(seg.length() == 3 && seg[2] == "set" || remoteSavedLocalValue)) {
-      qCritical("Illegal option operation: %s", qPrintable(topic));
+      qCritical("Illegal option operation: %s", qUtf8Printable(topic));
       return;
     }
     auto itr = options_.find(seg[1]);
     if (itr == options_.end()) {
-      qCritical("Illegal option name: %s", qPrintable(topic));
+      qCritical("Illegal option name: %s", qUtf8Printable(topic));
       return;
     }
 
@@ -43,26 +43,26 @@ void Client::handleMessage(const QMQTT::Message& message) {
     };
     if (error.error != QJsonParseError::NoError) {
       qCritical("Invalid json from payload(payload=\"%s\", topic=\"%s\"): %s",
-                qPrintable(payload_formatter()), qPrintable(message.topic()),
-                qPrintable(error.errorString()));
+                qUtf8Printable(payload_formatter()), qUtf8Printable(message.topic()),
+                qUtf8Printable(error.errorString()));
       return;
     }
     auto& value = doc["value"];
     if (value.isUndefined()) {
       qCritical("Invalid value from json(topic=\"%s\"): %s",
-                qPrintable(message.topic()), qPrintable(payload_formatter()));
+                qUtf8Printable(message.topic()), qUtf8Printable(payload_formatter()));
       return;
     }
 
     bool ret = itr->second->validate(value);
     if (!ret) {
       qCritical("Validation failed on json(topic=\"%s\"): %s",
-                qPrintable(message.topic()), qPrintable(payload_formatter()));
+                qUtf8Printable(message.topic()), qUtf8Printable(payload_formatter()));
       return;
     }
     itr->second->setValue(value);
-    qInfo("Remote changed option %s: %s", qPrintable(seg[1]),
-          qPrintable(payload_formatter()));
+    qInfo("Remote changed option %s: %s", qUtf8Printable(seg[1]),
+          qUtf8Printable(payload_formatter()));
   }
 }
 
