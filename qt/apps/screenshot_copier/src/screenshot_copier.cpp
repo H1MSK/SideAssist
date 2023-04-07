@@ -61,13 +61,13 @@ int main(int argc, char* argv[]) {
       [&](const QString& path) {
         qInfo("Detected directory %s changed.", qPrintable(path));
         for (auto info : QDir(path).entryInfoList(
-                 QDir::Filter::Files, QDir::Time | QDir::Reversed)) {
+                 QDir::Filter::Files, QDir::Time)) {
           auto time = info.lastModified().toMSecsSinceEpoch();
           if (time < timestamp->value().toInteger()) {
             qInfo("Nothing new in dir %s.", qPrintable(path));
             break;
           }
-          QImage img(info.path());
+          QImage img(info.canonicalFilePath());
           if (img.isNull())
             continue;
           qInfo("New image %s in dir %s.", qPrintable(info.fileName()),
@@ -75,6 +75,7 @@ int main(int argc, char* argv[]) {
           app.clipboard()->setImage(img);
           filename->setValue(info.canonicalFilePath());
           timestamp->setValue(time);
+          break;
         }
       });
   return app.exec();
