@@ -2,3 +2,6 @@
 	path = SideAssist.Client.Qt
 	url = https://git.h1msk.cc/H1MSK/SideAssist.Client.Qt
 	branch = main
+[submodule "SideAssist.Dashboard.Flutter"]
+	path = SideAssist.Dashboard.Flutter
+	url = https://git.h1msk.cc/H1MSK/SideAssist.Dashboard.Flutter
