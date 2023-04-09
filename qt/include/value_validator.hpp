@@ -180,6 +180,26 @@ class Q_SIDEASSIST_EXPORT Path : public Abstract {
   Path(const Path&) = default;
   Path(Path&&) = default;
 
+  static std::shared_ptr<Path> OpenFile() {
+    return std::make_shared<Path>(
+        PathExistanceFieldEnum::Exist, PathPermissionFieldEnum::Readable,
+        PathPermissionFieldEnum::All, PathTypeFieldEnum::File,
+        PathTypeFieldEnum::File);
+  }
+
+  static std::shared_ptr<Path> SaveFile() {
+    return std::make_shared<Path>(
+        PathExistanceFieldEnum::Undefined, PathPermissionFieldEnum::Writable,
+        PathPermissionFieldEnum::All, PathTypeFieldEnum::File,
+        PathTypeFieldEnum::File);
+  }
+
+  static std::shared_ptr<Path> ExistedDir() {
+    return std::make_shared<Path>(
+        PathExistanceFieldEnum::Exist, PathTypeFieldEnum::Dir,
+        PathTypeFieldEnum::Dir);
+  }
+
  private:
   PathExistanceField existance_;
   PathPermissionField min_perm_, max_perm_;
