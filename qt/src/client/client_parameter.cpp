@@ -95,7 +95,7 @@ void Client::uploadParameterValidator(const NamedValue* parameter) {
   }
   QMQTT::Message message(0,
                          "side_assist/" + mqtt_client_->clientId() +
-                             "/parameter/" + parameter->name() + "/validator",
+                             "/param/" + parameter->name() + "/validator",
                          buf, 2, true);
   qInfo("Uploading validator for parameter %s...", qUtf8Printable(parameter->name()));
   mqtt_client_->publish(message);
