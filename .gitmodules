@@ -1,3 +1,4 @@
-[submodule "qt/third_party/qmqtt"]
-	path = qt/third_party/qmqtt
-	url = https://git.h1msk.cc/H1MSK/qmqtt
+[submodule "SideAssist.Client.Qt"]
+	path = SideAssist.Client.Qt
+	url = https://git.h1msk.cc/H1MSK/SideAssist.Client.Qt
+	branch = main
