@@ -14,25 +14,30 @@ bool SingleType::validate(
 
 QJsonValue SingleType::serializeToJson() const noexcept {
   QString name;
-  switch (type_) {
-    case QJsonValue::Null:
+  switch (type_.value) {
+    case ValueTypeFieldEnum::Null:
       name = "Null";
       break;
-    case QJsonValue::Bool:
+    case ValueTypeFieldEnum::Bool:
       name = "Bool";
       break;
-    case QJsonValue::Double:
+    case ValueTypeFieldEnum::Integer:
+      name = "Integer";
+      break;
+    case ValueTypeFieldEnum::Double:
       name = "Double";
       break;
-    case QJsonValue::String:
+    case ValueTypeFieldEnum::String:
       name = "String";
       break;
-    case QJsonValue::Array:
+    case ValueTypeFieldEnum::Array:
       name = "Array";
       break;
-    case QJsonValue::Object:
+    case ValueTypeFieldEnum::Object:
       name = "Object";
       break;
+    default:
+      assert(false);
   }
   return QJsonObject({qMakePair("type", name)});
 }
