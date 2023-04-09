@@ -117,9 +117,9 @@ void Client::uploadAll() {
     for (auto& itr : parameters_) {
       auto& ptr = itr.second;
       if (ptr->value().type() != QJsonValue::Undefined)
-        uploadOptionValue(ptr.get());
+        uploadParameterValue(ptr.get());
       if (ptr->validator())
-        uploadOptionValidator(ptr.get());
+        uploadParameterValidator(ptr.get());
     }
   }
 }
