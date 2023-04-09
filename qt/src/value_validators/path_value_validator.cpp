@@ -1,3 +1,4 @@
+#include <QDir>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -13,6 +14,11 @@ bool Path::validate(const QJsonValue& value) const noexcept {
   if (existance_ != PathExistanceFieldEnum::Undefined &&
       (info.exists() ^ (existance_ == PathExistanceFieldEnum::Exist)))
     return false;
+  else if (existance_ != PathExistanceFieldEnum::Exist && !info.exists()) {
+    return ((min_perm_ == PathPermissionFieldEnum::None &&
+             min_type_ == PathTypeFieldEnum::Undefined) ||
+            info.dir().exists());
+  }
   PathPermissionField perm = PathPermissionFieldEnum::None;
   if (info.isReadable())
     perm |= PathPermissionFieldEnum::Readable;
